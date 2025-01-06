@@ -16,8 +16,8 @@ import math
 import os
 import pathlib
 import sys
-import traceback
-import tracemalloc
+# import traceback
+# import tracemalloc
 import typing
 import unicodedata
 import warnings
@@ -27,7 +27,7 @@ from gliner_spacy.pipeline import GlinerSpacy
 from icecream import ic
 from lancedb.embeddings import get_registry
 from lancedb.pydantic import LanceModel, Vector
-from pyinstrument import Profiler
+# from pyinstrument import Profiler
 import gensim
 import glirel
 import lancedb
@@ -38,7 +38,7 @@ import pyvis
 import requests
 import spacy
 import transformers
-
+from prefect import flow, task
 
 ######################################################################
 ## define the model selections and parameter settings
@@ -135,6 +135,7 @@ class Entity:
 ######################################################################
 ## collect unstructured data from specific web page sources
 
+@task
 def uni_scrubber (
     span: spacy.tokens.span.Span,
     ) -> str:
@@ -159,7 +160,7 @@ OH: "It scrubs the garble from its stream... or it gets the debugger again!"
 
     return limpio
 
-
+@task
 def make_chunk (
     doc: spacy.tokens.doc.Doc,
     url: str,
@@ -211,7 +212,7 @@ BTW, for ideal text chunk size see
 
     return chunk_id + 1
 
-
+@task
 def scrape_html (
     scrape_nlp: spacy.Language,
     url: str,
@@ -250,6 +251,7 @@ Returns the updated `chunk_id` index.
 ######################################################################
 ## lexical graph construction
 
+@task
 def init_nlp (
     ) -> spacy.Language:
     """
@@ -285,7 +287,7 @@ Initialize the models.
 
     return nlp
 
-
+@task
 def parse_text (
     nlp: spacy.Language,
     known_lemma: typing.List[ str ],
@@ -362,7 +364,7 @@ Parse an input text chunk, returning a `spaCy` document.
 
     return doc
 
-
+@task
 def make_entity (
     span_decoder: typing.Dict[ tuple, Entity ],
     sent_map: typing.Dict[ spacy.tokens.span.Span, int ],
@@ -397,7 +399,7 @@ Instantiate one `Entity` dataclass object, adding to our working "vocabulary".
 
     return ent
 
-
+@task
 def extract_entity (
     known_lemma: typing.List[ str ],
     lex_graph: nx.Graph,
@@ -460,7 +462,7 @@ Link one `Entity` into this doc's lexical graph.
     if debug:
         ic(ent)
 
-
+@task
 def extract_relations (
     known_lemma: typing.List[ str ],
     lex_graph: nx.Graph,
@@ -551,6 +553,7 @@ Extract the relations inferred by `GLiREL` adding these to the graph.
 ######################################################################
 ## numerical utilities
 
+@task
 def calc_quantile_bins (
     num_rows: int,
     *,
@@ -575,7 +578,7 @@ calculated bins, as a `numpy.ndarray`
         endpoint = True,
     )
 
-
+@task
 def stripe_column (
     values: list,
     bins: int,
@@ -603,7 +606,7 @@ the striped column values, as a `numpy.ndarray`
         print("ValueError:", str(ex), values, s, q, bins)
         raise
 
-
+@task
 def root_mean_square (
     values: typing.List[ float ]
     ) -> float:
@@ -626,6 +629,7 @@ RMS metric as a float
 ######################################################################
 ## textrank algorithm for co-occurence and node ranking
 
+@task
 def connect_entities (
     lex_graph: nx.Graph,
     span_decoder: typing.Dict[ tuple, Entity ],
@@ -649,7 +653,7 @@ Connect entities which co-occur within the same sentence.
                     prob = 1.0,
                 )
 
-
+@task
 def run_textrank (
     lex_graph: nx.Graph,
     ) -> pd.DataFrame:
@@ -699,6 +703,7 @@ Run eigenvalue centrality (i.e., _Personalized PageRank_) to rank the entities.
 ######################################################################
 ## abstracting the semantic overlay out of the lexical graph
 
+@task
 def abstract_overlay (
     url: str,
     chunk_list: typing.List[ TextChunk ],
@@ -826,7 +831,7 @@ Use `pyvis` to provide an interactive visualization of the graph layers.
         pv_net.show_buttons(filter_ = [ "physics" ])
         pv_net.save_graph(html_file)
 
-
+@flow
 def construct_kg (
     url_list: typing.List[ str ],
     chunk_table: lancedb.table.LanceTable,
@@ -988,9 +993,9 @@ Construct a knowledge graph from unstructured data sources.
 
 if __name__ == "__main__":
     # start the stochastic call trace profiler and memory profiler
-    profiler: Profiler = Profiler()
-    profiler.start()
-    tracemalloc.start()
+    # profiler: Profiler = Profiler()
+    # profiler.start()
+    # tracemalloc.start()
 
     # define the global data structures
     url_list: typing.List[ str ] = [
@@ -1021,27 +1026,29 @@ if __name__ == "__main__":
         with pathlib.Path("data/kg.json").open("w", encoding = "utf-8") as fp:
             fp.write(
                 json.dumps(
-                    nx.node_link_data(sem_overlay),
+                    nx.node_link_data(sem_overlay, edges="edges"),
                     indent = 2,
                     sort_keys = True,
                 )
             )
-
+        print("after writing the KG")
         # generate HTML for an interactive visualization of a graph
         gen_pyvis(
             sem_overlay,
             "kg.html",
             num_docs = len(url_list),
         )
+        print("after generating the HTML")
     except Exception as ex:
         ic(ex)
-        traceback.print_exc()
+        # traceback.print_exc()
 
-    # stop the profiler and report performance statistics
-    profiler.stop()
-    profiler.print()
 
-    # report the memory usage
-    report: tuple = tracemalloc.get_traced_memory()
-    peak: float = round(report[1] / 1024.0 / 1024.0, 2)
-    print(f"peak memory usage: {peak} MB")
+    # # stop the profiler and report performance statistics
+    # profiler.stop()
+    # profiler.print()
+
+    # # report the memory usage
+    # report: tuple = tracemalloc.get_traced_memory()
+    # peak: float = round(report[1] / 1024.0 / 1024.0, 2)
+    # print(f"peak memory usage: {peak} MB")
