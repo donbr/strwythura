@@ -90,4 +90,6 @@ sequenceDiagram
 
 ## Current Graph based on Master Class content
 
-<a href="https://github.com/donbr/strwythura/blob/main/graphrag_demo.html" target="_blank">View HTML Page</a>
+[View HTML Page](https://github.com/donbr/strwythura/blob/main/graphrag_demo.html)
+
+- NOTE:  you may need to download the file locally to view it.
