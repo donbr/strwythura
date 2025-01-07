@@ -20,3 +20,7 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.7.1
 
 # GLiREL has a PR to fix this omitted dependency
 datasets >= 2.20
+
+# donbr 2025/01/06: added prefect and loguru
+prefect >= 3.1.11
+loguru
