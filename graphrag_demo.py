@@ -127,11 +127,12 @@ def uni_scrubber (
     span: spacy.tokens.span.Span,
     ) -> str:
     """
-Applies multiple approaches for aggressively removing garbled Unicode
-and spurious punctuation from the given text.
+    Cleans text by removing garbled Unicode and spurious punctuation.
 
-OH: "It scrubs the garble from its stream... or it gets the debugger again!"
+    Part of the text pre-processing pipeline to ensure high-quality input
+    for entity and relationship extraction.
     """
+
     text: str = span.text
 
     if type(text).__name__ != "str":
@@ -155,10 +156,21 @@ def make_chunk (
     chunk_id: int,
     ) -> int:
     """
-Split the given document into text chunks, returning the last index.
-BTW, for ideal text chunk size see
-<https://www.llamaindex.ai/blog/evaluating-the-ideal-chunk-size-for-a-rag-system-using-llamaindex-6207e5d3fec5>
+    Splits a document into text chunks of a fixed size for efficient processing.
+
+    Uses recommendations from the RAG (Retrieval-Augmented Generation) system 
+    to optimize chunk size for embedding and storage.
+
+    Args:
+        doc: The input document to chunk.
+        url: The source URL for reference.
+        chunk_list: List to store the resulting chunks.
+        chunk_id: Current chunk index.
+        
+    Returns:
+        Updated chunk ID after processing.
     """
+
     chunks: typing.List[ str ] = []
     chunk_total: int = 0
     prev_line: str = ""
@@ -207,9 +219,21 @@ def scrape_html (
     chunk_id: int,
     ) -> int:
     """
-A simple web page text scraper, which also performs chunking.
-Returns the updated `chunk_id` index.
+    Fetches text from a webpage and performs chunking on the content.
+
+    Combines HTML scraping with NLP-based chunking for streamlined data ingestion
+    into the knowledge graph workflow.
+
+    Args:
+        scrape_nlp: spaCy language model for text processing.
+        url: Web page URL to scrape.
+        chunk_list: List to store text chunks.
+        chunk_id: Current chunk index.
+        
+    Returns:
+        Updated chunk ID after processing the webpage.
     """
+
     logger = get_run_logger()
     response: requests.Response = requests.get(
         url,
@@ -243,8 +267,15 @@ Returns the updated `chunk_id` index.
 def init_nlp (
     ) -> spacy.Language:
     """
-Initialize the models.
+    Initializes the NLP pipeline with spaCy, GLiNER, and GLiREL models.
+
+    Sets up Named Entity Recognition (NER) and Relationship Extraction (RE)
+    to identify domain-specific entities and their connections.
+
+    Returns:
+        Initialized spaCy language object.
     """
+
     # override specific Hugging Face error messages, since
     # `transformers` and `tokenizers` have noisy logging
     logging.disable(logging.ERROR)
@@ -285,8 +316,22 @@ def parse_text (
     debug: bool = False,
     ) -> spacy.tokens.doc.Doc:
     """
-Parse an input text chunk, returning a `spaCy` document.
+    Parses text chunks to construct a lexical graph and extract entities.
+
+    Combines spaCy parsing with TextRank-inspired co-occurrence algorithms to 
+    create a graph representation of text.
+
+    Args:
+        nlp: Initialized NLP pipeline.
+        known_lemma: List of lemmas encountered so far.
+        lex_graph: Graph to store lexical relations.
+        chunk: Text chunk to parse.
+        debug: Enables debugging logs.
+        
+    Returns:
+        Parsed spaCy document.
     """
+
     logger = get_run_logger()
     doc: spacy.tokens.doc.Doc = list(
         nlp.pipe(
@@ -363,8 +408,22 @@ def make_entity (
     debug: bool = False,
     ) -> Entity:
     """
-Instantiate one `Entity` dataclass object, adding to our working "vocabulary".
+    Creates an `Entity` object from a recognized text span.
+
+    Facilitates integration of identified entities into the knowledge graph
+    as nodes for downstream analysis.
+
+    Args:
+        span_decoder: Decoder for span-to-entity mapping.
+        sent_map: Sentence-to-entity mapping.
+        span: Text span identified as an entity.
+        chunk: Associated text chunk.
+        debug: Enables debugging logs.
+        
+    Returns:
+        Created `Entity` object.
     """
+
     logger = get_run_logger()
     key: str = " ".join([
         tok.pos_ + "." + tok.lemma_.strip().lower()
@@ -398,8 +457,18 @@ def extract_entity (
     debug: bool = False,
     ) -> None:
     """
-Link one `Entity` into this doc's lexical graph.
+    Links an entity into the lexical graph.
+
+    Ensures that entities are represented as nodes with appropriate
+    connections to lemmas or other entities.
+
+    Args:
+        known_lemma: List of previously known lemmas.
+        lex_graph: Lexical graph for storing entities.
+        ent: Entity to extract and link.
+        debug: Enables debugging logs.
     """
+
     logger = get_run_logger()
     prev_known: bool = False
 
@@ -464,8 +533,21 @@ def extract_relations (
     debug: bool = False,
     ) -> None:
     """
-Extract the relations inferred by `GLiREL` adding these to the graph.
+    Extracts relationships between entities using GLiREL.
+
+    Adds inferred relationships as edges in the lexical graph, ensuring a
+    robust representation of entity interactions.
+
+    Args:
+        known_lemma: List of previously known lemmas.
+        lex_graph: Lexical graph for storing relationships.
+        span_decoder: Decoder for span-to-entity mapping.
+        sent_map: Sentence-to-entity mapping.
+        doc: Parsed spaCy document.
+        chunk: Associated text chunk.
+        debug: Enables debugging logs.
     """
+
     relations: typing.List[ dict ] = sorted(
         doc._.relations,
         key = lambda item: item["score"],
@@ -549,14 +631,14 @@ def calc_quantile_bins (
     amplitude: int = 4,
     ) -> np.ndarray:
     """
-Calculate the bins to use for a quantile stripe,
-using [`numpy.linspace`](https://numpy.org/doc/stable/reference/generated/numpy.linspace.html)
+    Calculate the bins to use for a quantile stripe,
+    using [`numpy.linspace`](https://numpy.org/doc/stable/reference/generated/numpy.linspace.html)
 
-    num_rows:
-number of rows in the target dataframe
+        num_rows:
+    number of rows in the target dataframe
 
-    returns:
-calculated bins, as a `numpy.ndarray`
+        returns:
+    calculated bins, as a `numpy.ndarray`
     """
     granularity = max(round(math.log(num_rows) * amplitude), 1)
 
@@ -573,16 +655,16 @@ def stripe_column (
     bins: int,
     ) -> np.ndarray:
     """
-Stripe a column in a dataframe, by interpolating quantiles into a set of discrete indexes.
+    Stripe a column in a dataframe, by interpolating quantiles into a set of discrete indexes.
 
-    values:
-list of values to stripe
+        values:
+    list of values to stripe
 
-    bins:
-quantile bins; see [`calc_quantile_bins()`](#calc_quantile_bins-function)
+        bins:
+    quantile bins; see [`calc_quantile_bins()`](#calc_quantile_bins-function)
 
-    returns:
-the striped column values, as a `numpy.ndarray`
+        returns:
+    the striped column values, as a `numpy.ndarray`
     """
     s = pd.Series(values)
     q = s.quantile(bins, interpolation = "nearest")
@@ -600,14 +682,14 @@ def root_mean_square (
     values: typing.List[ float ]
     ) -> float:
     """
-Calculate the [*root mean square*](https://mathworld.wolfram.com/Root-Mean-Square.html)
-of the values in the given list.
+    Calculate the [*root mean square*](https://mathworld.wolfram.com/Root-Mean-Square.html)
+    of the values in the given list.
 
-    values:
-list of values to use in the RMS calculation
+        values:
+    list of values to use in the RMS calculation
 
-    returns:
-RMS metric as a float
+        returns:
+    RMS metric as a float
     """
     s: float = sum(map(lambda x: float(x) ** 2.0, values))
     n: float = float(len(values))
@@ -623,7 +705,7 @@ def connect_entities (
     span_decoder: typing.Dict[ tuple, Entity ],
     ) -> None:
     """
-Connect entities which co-occur within the same sentence.
+    Connect entities which co-occur within the same sentence.
     """
     ent_map: typing.Dict[ int, typing.Set[ int ]] = defaultdict(set)
 
@@ -646,8 +728,17 @@ def run_textrank (
     lex_graph: nx.Graph,
     ) -> pd.DataFrame:
     """
-Run eigenvalue centrality (i.e., _Personalized PageRank_) to rank the entities.
+    Ranks entities in the lexical graph using a PageRank-inspired algorithm.
+
+    Calculates centrality metrics to prioritize key entities for downstream tasks.
+
+    Args:
+        lex_graph: Lexical graph containing entities and relationships.
+        
+    Returns:
+        DataFrame of ranked entities.
     """
+
     # build a dataframe of node ranks and counts
     df_rank: pd.DataFrame = pd.DataFrame.from_dict([
         {
@@ -698,12 +789,18 @@ def abstract_overlay (
     sem_overlay: nx.Graph,
     ) -> None:
     """
-Abstract a _semantic overlay_ from the lexical graph -- in other words
-which nodes and edges get promoted up to the next level?
+    Creates a semantic overlay by promoting entities and relationships from 
+    the lexical graph to a higher-level representation.
 
-Also connect the extracted entities with their source chunks, where
-the latter first-class citizens within the KG.
+    Connects entities to their source chunks, enabling context-aware knowledge graphs.
+
+    Args:
+        url: Source URL for the data.
+        chunk_list: List of processed text chunks.
+        lex_graph: Lexical graph to abstract.
+        sem_overlay: Graph to store the semantic overlay.
     """
+
     kept_nodes: typing.Set[ int ] = set()
     skipped_rel: typing.Set[ str ] = set([ "FOLLOWS_LEXICALLY", "COMPOUND_ELEMENT_OF" ])
 
@@ -777,7 +874,7 @@ def gen_pyvis (
     notebook: bool = False,
     ) -> None:
     """
-Use `pyvis` to provide an interactive visualization of the graph layers.
+    Use `pyvis` to provide an interactive visualization of the graph layers.
     """
     pv_net: pyvis.network.Network = pyvis.network.Network(
         height = "900px",
@@ -827,8 +924,19 @@ def construct_kg (
     debug: bool = True,
     ) -> None:
     """
-Construct a knowledge graph from unstructured data sources.
+    Orchestrates the construction of a knowledge graph from unstructured data.
+
+    Integrates scraping, NLP processing, lexical graph creation, and visualization
+    into a cohesive pipeline for knowledge graph generation.
+
+    Args:
+        url_list: List of URLs to process.
+        chunk_table: LanceDB table to store chunks and embeddings.
+        sem_overlay: Semantic overlay graph.
+        w2v_file: File path to save Word2Vec embeddings.
+        debug: Enables debugging logs.
     """
+
     logger = get_run_logger()
     # define the global data structures which must be reset for each
     # run, not on each chunk iteration

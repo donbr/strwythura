@@ -11,10 +11,24 @@ Inspired by the great work done by multiple individuals who created the [Connect
 - Michael Dockter https://github.com/docktermj
 
 This current repository is a fork of one of four repos that make up the masterclass.
+## Some fundamental concepts from the masterclass
+
+### Data Ingestion
+
+- the other aspects that aren't shown on this diagram is the degree to which data has been trusted / validated.
+- validated data should often be captured in a structured data store
+- fraudulent data may also need to trigger worfklows downstream actions - including flagging data we previously trusted
+
+![data ingestion](https://github.com/donbr/cdl2024_masterclass/blob/main/arch.1.png?raw=true)
+
+### Data Ingerence (or applied data use)
+
+![data inference](https://github.com/donbr/cdl2024_masterclass/blob/main/arch.2.png?raw=true)
 
 ## Sequence Diagram
 
 - initial version:  largely based on `demo.py` functions
+- what isn't clear based on the code at least is the use of Word2Vec embeddings over and above the other embedding models
 
 ```mermaid
 sequenceDiagram
@@ -98,7 +112,7 @@ sequenceDiagram
 
 ## Incremental enlightenment...
 
-- some of this content smells, but there are some emerging nuggets of truth.
+- some of the following content smells, but there are some emerging nuggets of truth.
 
 ```mermaid
 sequenceDiagram
@@ -158,10 +172,9 @@ Knowledge Graphs (KGs) are critical in transforming unstructured data into actio
 
 #### **Purpose and Value Proposition**
 This workflow stands out by addressing challenges in:
+
 - **Data Ingestion**: Handling noisy and unstructured data.
-
 - **Semantic Enrichment**: Integrating domain-specific ontologies for context.
-
 - **Scalability and Adaptability**: Supporting real-time updates and modularity for diverse use cases.
 
 By blending symbolic reasoning with statistical machine learning, this solution is ideal for regulated environments like healthcare and finance, where auditability and explainability are crucial.
