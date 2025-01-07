@@ -998,8 +998,8 @@ if __name__ == "__main__":
 
     url_list: typing.List[ str ] = [
         "https://github.com/donbr/cdl2024_masterclass/blob/main/README.md"
-        "https://www.oreilly.com/radar/unbundling-the-graph-in-graphrag/",
-        "https://github.com/DerwenAI/strwythura/blob/main/README.md",
+        "https://github.com/donbr/strwythura/blob/main/Unbundling_the_Graph_in_GraphRAG.md",
+        "https://github.com/donbr/strwythura/blob/main/README.md",
         "https://github.com/urchade/GLiNER/blob/main/README_Extended.md",
         "https://github.com/jackboyla/GLiREL/blob/main/README.md"
     ]

@@ -94,6 +94,7 @@ KGs used in mission-critical apps such as investigations generally rely
 on updates, not a one-step construction process.
 By producing a KG based on the steps above, updates can be handled more
 effectively.
+
 Downstream apps such as [_Graph RAG_](https://derwen.ai/s/hm7h)
 for grounding the LLM results will also benefit from improved data quality.
 

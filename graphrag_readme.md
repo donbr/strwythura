@@ -2,7 +2,7 @@
 
 ## Citations: giving credit where credit is due...
 
-Inspired by the great work done by multiple individuals who created the [Connected Data London 2024: Entity Resolved Knowledge Graphs](https://github.com/DerwenAI/cdl2024_masterclass/blob/main/README.md) masterclass I created this document to highlight areas that I found .
+Inspired by the great work done by multiple individuals who created the [Connected Data London 2024: Entity Resolved Knowledge Graphs](https://github.com/DerwenAI/cdl2024_masterclass/blob/main/README.md) masterclass I created this document to highlight areas that rang true.
 
 - Paco Nathan https://senzing.com/consult-entity-resolution-paco/
 - Clair Sullivan https://clairsullivan.com/
@@ -87,3 +87,7 @@ sequenceDiagram
     ```python
     python graphrag_demo.py
     ```
+
+## Current Graph based on Master Class content
+
+<a href="https://github.com/donbr/strwythura/blob/main/graphrag_demo.html" target="_blank">View HTML Page</a>
