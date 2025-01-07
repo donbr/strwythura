@@ -14,6 +14,8 @@ This current repository is a fork of one of four repos that make up the mastercl
 
 ## Sequence Diagram
 
+- initial version:  largely based on `demo.py` functions
+
 ```mermaid
 sequenceDiagram
     participant Main as Main Script
@@ -94,7 +96,9 @@ sequenceDiagram
 
 - NOTE:  you may need to download the file locally to view it.
 
-Here is a new **Mermaid.js sequence diagram** that clearly represents the roles of each model and component in the end-to-end flow of the script:
+## Incremental enlightenment...
+
+- some of this content smells, but there are some emerging nuggets of truth.
 
 ```mermaid
 sequenceDiagram
@@ -102,6 +106,7 @@ sequenceDiagram
     participant Scraper as HTML Scraper (BeautifulSoup)
     participant Chunker as Text Chunker
     participant Spacy as SpaCy Pipeline
+    participant BGE as Embedding Model (bgeSmall)
     participant GLiNER as Named Entity Recognition (GLiNER)
     participant GLiREL as Relation Extraction (GLiREL)
     participant LanceDB as Vector Database
@@ -128,17 +133,20 @@ sequenceDiagram
 ```
 
 ### **Explanation of Participants:**
+
 1. **HTML Scraper (BeautifulSoup)**: Fetches unstructured text data from web sources.
 2. **Text Chunker**: Breaks raw text into manageable chunks (e.g., 1024 tokens) and prepares them for embedding.
 3. **SpaCy Pipeline**: Processes chunks and integrates GLiNER and GLiREL for entity and relation extraction.
-4. **GLiNER**: Identifies domain-specific entities and returns labeled outputs.
-5. **GLiREL**: Extracts relationships between identified entities, adding connectivity to the graph.
-6. **Vector Database (LanceDB)**: Stores chunk embeddings for efficient querying in downstream tasks.
-7. **Word2Vec (Gensim)**: Generates entity embeddings based on graph co-occurrence for additional analysis.
-8. **Graph Constructor (NetworkX)**: Builds and analyzes the knowledge graph, ranking entities using TextRank.
-9. **Graph Visualizer (PyVis)**: Provides an interactive visualization of the knowledge graph for interpretability.
+4. **Embedding Model (bge-small-en-v1.5)**:
+5. **GLiNER**: Identifies domain-specific entities and returns labeled outputs.
+6. **GLiREL**: Extracts relationships between identified entities, adding connectivity to the graph.
+7. **Vector Database (LanceDB)**: Stores chunk embeddings for efficient querying in downstream tasks.
+8. **Word2Vec (Gensim)**: Generates entity embeddings based on graph co-occurrence for additional analysis.
+9. **Graph Constructor (NetworkX)**: Builds and analyzes the knowledge graph, ranking entities using TextRank.
+10. **Graph Visualizer (PyVis)**: Provides an interactive visualization of the knowledge graph for interpretability.
 
 ### **Key Highlights:**
+
 - The diagram separates concerns, showing how the models (GLiNER, GLiREL, and W2V) integrate with components like SpaCy, NetworkX, and LanceDB.
 - Each model’s purpose is clearly contextualized within the flow.
 - Semantic embeddings (via LanceDB) and graph-specific embeddings (via Word2Vec) are highlighted as complementary processes.
