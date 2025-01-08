@@ -124,8 +124,9 @@ sequenceDiagram
 
 ## Pardon my mess:  a journey of incremental enlightenment...
 
-- some of the content I've added below still smells, but there are some emerging golden nuggets of truth.
-- As I clarify the why and the what of specific components / functions in the flow the content *may* improve or I may dump it entirely
+- much of the content I've added below still smells, but there are some emerging golden nuggets of truth.
+  - it's a bit of a rabbit hole - an exercise in agent / llm experience (we have UX, why not AIX?)
+- As I clarify the why and the what of specific components / functions in the flow the content *may* improve (or I may dump it entirely)
 
 ```mermaid
 sequenceDiagram
