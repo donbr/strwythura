@@ -122,7 +122,7 @@ sequenceDiagram
 
 ## Pardon my mess:  a journey of incremental enlightenment...
 
-- some of the following content I've added below still smells, but there are some emerging golden nuggets of truth.
+- some of the content I've added below still smells, but there are some emerging golden nuggets of truth.
 - As I clarify the why and the what of specific components / functions in the flow the content *may* improve or I may dump it entirely
 
 ```mermaid
