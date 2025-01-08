@@ -16,11 +16,13 @@ This current repository is a fork of one of four repos that make up the mastercl
 
 ### Data Ingestion
 
-> COMMENTS: the other aspects that aren't shown on this diagram is the degree to which data has been trusted / validated.  Anchor nodes and golden nuggets are essential if your graph is to evolve and improve over time.  A single architecture diagram can never capture `everything` for all stakeholders - I would check out some of Paco's `GraphGeeks` and `Graph Power Hour` discussions where he touches on some of these themes.
+> COMMENTS: some additional consideration that aren't called out on this diagram is the degree to which data has been trusted / validated.  Anchor nodes and golden nuggets are essential if your graph is to evolve and improve over time.  
 
-> validated data should often be written back to the structured data store
+> there should be a robust data flow to write vetted / high quality data back to the structured data store (at appropriate intervals)
 
-> fraudulent data may also need to trigger worfklows and downstream actions - including flagging data we previously trusted
+> fraudulent data may also need to trigger worfklows and downstream actions - including flagging data that we previously trusted
+
+A single architecture diagram can *never* capture `everything` for all stakeholders - I would check out some of Paco's `GraphGeeks` and `Graph Power Hour` discussions where he touches on some of these themes.
 
 ![data ingestion](https://github.com/donbr/cdl2024_masterclass/blob/main/arch.1.png?raw=true)
 
