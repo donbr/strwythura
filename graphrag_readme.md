@@ -2,7 +2,7 @@
 
 ## Citations: giving credit where credit is due...
 
-Inspired by the great work done by multiple individuals who created the [Connected Data London 2024: Entity Resolved Knowledge Graphs](https://github.com/DerwenAI/cdl2024_masterclass/blob/main/README.md) masterclass I created this document to highlight areas that rang true.
+Inspired by the great work done by multiple individuals who created the [Connected Data London 2024: Entity Resolved Knowledge Graphs](https://github.com/donbr/cdl2024_masterclass/blob/main/README.md) masterclass I created this document to highlight areas that rang true.
 
 - Paco Nathan https://senzing.com/consult-entity-resolution-paco/
 - Clair Sullivan https://clairsullivan.com/
@@ -11,13 +11,16 @@ Inspired by the great work done by multiple individuals who created the [Connect
 - Michael Dockter https://github.com/docktermj
 
 This current repository is a fork of one of four repos that make up the masterclass.
+
 ## Some fundamental concepts from the masterclass
 
 ### Data Ingestion
 
-- the other aspects that aren't shown on this diagram is the degree to which data has been trusted / validated.
-- validated data should often be captured in a structured data store
-- fraudulent data may also need to trigger worfklows downstream actions - including flagging data we previously trusted
+> COMMENTS: the other aspects that aren't shown on this diagram is the degree to which data has been trusted / validated.  Anchor nodes and golden nuggets are essential if your graph is to evolve and improve over time.  A single architecture diagram can never capture `everything` for all stakeholders - I would check out some of Paco's `GraphGeeks` and `Graph Power Hour` discussions where he touches on some of these themes.
+
+> validated data should often be written back to the structured data store
+
+> fraudulent data may also need to trigger worfklows and downstream actions - including flagging data we previously trusted
 
 ![data ingestion](https://github.com/donbr/cdl2024_masterclass/blob/main/arch.1.png?raw=true)
 
@@ -25,10 +28,15 @@ This current repository is a fork of one of four repos that make up the mastercl
 
 ![data inference](https://github.com/donbr/cdl2024_masterclass/blob/main/arch.2.png?raw=true)
 
-## Sequence Diagram
+## Sequence Diagram - covering the current `strwythura` (structure) repo
 
 - initial version:  largely based on `demo.py` functions
-- what isn't clear based on the code at least is the use of Word2Vec embeddings over and above the other embedding models
+- repo captures a tangible example of leveraging a combination of embedding models, open source models (GLiNER) and a vector store (LanceDB) for improved entity recognition and relationship extraction
+- Paco's video (and the diagrams) also call out that in real-world use cases 
+- what wasn't clear based on the code is the use of Word2Vec embeddings over and above the other embedding models
+- what helped me start to reverse architect and understand the flow better was Prefect.
+  - [graphrag_demo.py](./graphrag_demo.py) is my simple update to [Paco's initial python code](./demo.py)
+  - I used Prefect function decorators based on the existing structure, but I think there are some great opportunities to make minor modifications to build a more effective and resilient dataflow.
 
 ```mermaid
 sequenceDiagram
@@ -110,9 +118,12 @@ sequenceDiagram
 
 - NOTE:  you may need to download the file locally to view it.
 
-## Incremental enlightenment...
+---
 
-- some of the following content smells, but there are some emerging nuggets of truth.
+## Pardon my mess:  a journey of incremental enlightenment...
+
+- some of the following content I've added below still smells, but there are some emerging golden nuggets of truth.
+- As I clarify the why and the what of specific components / functions in the flow the content *may* improve or I may dump it entirely
 
 ```mermaid
 sequenceDiagram
@@ -168,9 +179,11 @@ sequenceDiagram
 ## Building Robust Knowledge Graphs for GraphRAG: A Comprehensive Analysis
 
 ### **Executive Overview**
+
 Knowledge Graphs (KGs) are critical in transforming unstructured data into actionable insights, especially for Graph-based Retrieval-Augmented Generation (GraphRAG). This report provides a systematic, layered approach to building robust KGs, leveraging both open-source and proprietary tools to address enterprise-level challenges.
 
 #### **Purpose and Value Proposition**
+
 This workflow stands out by addressing challenges in:
 
 - **Data Ingestion**: Handling noisy and unstructured data.
@@ -201,6 +214,7 @@ By blending symbolic reasoning with statistical machine learning, this solution 
    - Integrating structured data and domain-specific ontologies for added context and reasoning.
 
 #### **1.2 Enhanced Sequence Diagram**
+
 ```mermaid
 sequenceDiagram
     participant Main as Main Orchestration
@@ -243,21 +257,23 @@ sequenceDiagram
 ### **3. Key Technical Components**
 
 #### **3.1 Data Ingestion and Chunking**
+
 - **Process**: Scrape data using BeautifulSoup; chunk using spaCy.
-
 - **Challenges**: Handling noise, unstructured formats.
-
 - **Solutions**: Introduce configurable pre-processing pipelines.
 
 #### **3.2 NLP Pipeline Initialization**
+
 - **Tools**: spaCy, GLiNER, GLiREL.
 - **Key Configurations**: Fine-tune NER and RE models for specific domains.
 
 #### **3.3 Graph Construction**
+
 - **Framework**: NetworkX.
 - **Enhancements**: Edge weights based on TextRank scores; customizable traversal algorithms.
 
 #### **3.4 Visualization**
+
 - **Tool**: PyVis for interactive views.
 - **Benefit**: Enables real-time exploration and debugging.
 
@@ -266,6 +282,7 @@ sequenceDiagram
 ### **4. Visualized Architecture**
 
 #### **4.1 Logical Data Flow Diagram**
+
 ```mermaid
 graph TD
 A[Raw Data] -->|Scrape| B[Chunks]
@@ -281,26 +298,25 @@ F -->|Visualize| G[Interactive View]
 ### **5. Scalability and Extensibility**
 
 #### **5.1 Incremental Graph Updates**
-- **Change Detection**: Monitor for source changes with hash comparisons.
 
+- **Change Detection**: Monitor for source changes with hash comparisons.
 - **Merging**: Ensure conflict resolution during node and edge updates.
 
 #### **5.2 Domain-Specific Support**
-- Use domain-specific ontologies (e.g., UMLS for healthcare).
 
+- Use domain-specific ontologies (e.g., UMLS for healthcare).
 - Fine-tune models using domain-specific datasets.
 
 ---
 
 ### **6. Conclusion and Next Steps**
+
 This workflow demonstrates how modular, scalable approaches to KG construction can elevate GraphRAG applications in enterprise environments. By addressing real-world challenges with both open-source and proprietary tools, it offers a comprehensive solution for data-driven decision-making.
 
 #### **Next Steps**:
 
 - **Pilot Testing**: Use open-source tools to validate the workflow on real-world datasets.
-
 - **Real-Time Updates**: Research strategies for dynamic graph construction.
-
 - **Domain Expansion**: Fine-tune workflows for sectors like healthcare, finance, and e-commerce.
 
 By leveraging symbolic reasoning and statistical AI, this approach ensures transparency, scalability, and auditability—key requirements for modern enterprises.
