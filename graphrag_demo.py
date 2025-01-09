@@ -1092,12 +1092,18 @@ def construct_kg (
             )
         )
 
+    # Path to save the GraphML file
+    graphml_path = pathlib.Path("data/kg.graphml")
+
+    # Serialize the NetworkX graph to GraphML format using a with statement
+    with graphml_path.open("wb") as fp:  # Open in binary write mode
+        nx.write_graphml(sem_overlay, fp)
+
     gen_pyvis(
         sem_overlay,
         "graphrag_demo.html",
         num_docs = len(url_list),
     )
-
 
 ######################################################################
 ## main entry point

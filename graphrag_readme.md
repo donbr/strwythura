@@ -118,6 +118,8 @@ sequenceDiagram
 
 [View HTML Page](https://github.com/donbr/strwythura/blob/main/graphrag_demo.html)
 
+![alt text](image.png)
+
 - NOTE:  you may need to download the file locally to view it.
 
 ---
