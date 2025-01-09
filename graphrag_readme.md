@@ -14,9 +14,11 @@ This current repository is a fork of one of four repos that make up the mastercl
 
 ## Some fundamental concepts from the masterclass
 
-### Data Ingestion
+### Data Infestion
 
-> COMMENTS: some additional consideration that aren't called out on this diagram is the degree to which data has been trusted / validated.  Anchor nodes and golden nuggets are essential if your graph is to evolve and improve over time.  
+NOTE:  mermaid.js diagrams below are based on those from the [Connected Data London 2024: Entity Resolved Knowledge Graphs](https://github.com/donbr/cdl2024_masterclass/blob/main/README.md) masterclass.
+
+> COMMENTS: some additional aspects thats aren't called out in this diagram is the degree to which data has been trusted / validated.  Anchor nodes and golden nuggets are essential if your graph is to evolve and improve over time.  
 
 > there should be a robust data flow to write vetted / high quality data back to the structured data store (at appropriate intervals)
 
@@ -24,21 +26,87 @@ This current repository is a fork of one of four repos that make up the mastercl
 
 A single architecture diagram can *never* capture `everything` for all stakeholders - I would check out some of Paco's `GraphGeeks` and `Graph Power Hour` discussions where he touches on some of these themes.
 
-![data ingestion](https://github.com/donbr/cdl2024_masterclass/blob/main/arch.1.png?raw=true)
+```mermaid
+graph TD
+    %% Database shapes
+    A[(Structured<br/>Data Sources)]
+    C[(Unstructured<br/>Data Sources)]
+    G[(graph database)]
+    I[(vector database)]
 
-### Data Ingerence (or applied data use)
+    %% Flow from structured data
+    A -->|PII features| B[entity resolution]
+    A -->|data records| G
+    G -->|PII updates| B
+    B -->|semantic overlay| G
 
-![data inference](https://github.com/donbr/cdl2024_masterclass/blob/main/arch.2.png?raw=true)
+    %% Schema and ontology
+    J[schema, ontology, taxonomy,<br/>controlled vocabularies, etc.] --> G
+
+    %% Flow from unstructured data
+    C --> K[text chunking<br/>function]
+    K --> D[NLP parse]
+    K --> L[embedding model]
+    D --> E[NER, RE]
+    E --> F[lexical graph]
+    F --> H[entity linking]
+    H <--> G
+
+    %% Vector elements connections
+    L --> I
+    I -.->|chunk references| G
+
+    %% Thesaurus connection
+    B -.->T[thesaurus]
+    T --> H
+```
+
+### Data Inference (or applied data use)
+
+```mermaid
+graph LR
+    %% Define database and special shapes
+    A[prompt]
+    G[(graph database)]
+    V[(vector database)]
+    L[LLM]
+    R[response]
+    
+    %% Main flow paths
+    A --> B[generated query]
+    A --> C[embedding model]
+    
+    %% Upper path through graph elements
+    B --> G
+    G --> D[semantic<br/>random walk]
+    T[thesaurus] --> D
+    D --> E[graph analytics]
+    
+    %% Lower path through vector elements
+    C --> F[vector<br/>similarity search]
+    F --> V
+    
+    %% Node embeddings and chunk references
+    G -.-|chunk references| V
+    F -->|node embeddings| G
+    
+    %% Final convergence
+    E --> H[ranked index]
+    V --> H
+    H --> L
+    L --> R
+```
 
 ## Sequence Diagram - covering the current `strwythura` (structure) repo
 
-- initial version:  largely based on `demo.py` functions
-- repo captures a tangible example of leveraging a combination of embedding models, open source models (GLiNER) and a vector store (LanceDB) for improved entity recognition and relationship extraction
-- Paco's video (and the diagrams) also call out that in real-world use cases 
-- what wasn't clear based on the code is the use of Word2Vec embeddings over and above the other embedding models
-- what helped me start to reverse architect and understand the flow better was Prefect.
-  - [graphrag_demo.py](./graphrag_demo.py) is my simple update to [Paco's initial python code](./demo.py)
-  - I used Prefect function decorators based on the existing structure, but I think there are some great opportunities to make minor modifications to build a more effective and resilient dataflow.
+- the diagram below is largely based on the `demo.py` functions
+- I used [Prefect](https://www.prefect.io/) to `dig in` and reverse architect the flow...
+  - [graphrag_demo.py](./graphrag_demo.py) is my simple update to [Paco's original python code](./demo.py)
+  - I stuck to using Prefect function decorators based on the existing structure, but I'm looking forward to abstracting some of the concepts out further and thinking agentically.
+- Telemetry and instrumentation can often demystify complex processes, without the headaches of wading through long print statements.  Some great insight often occurs when you can see how individual functions / components are interacting.
+  - this repo features a large and distinguished cast of open source models (GLiNER, GLiREL), open source embeddings (BGE, Word2Vec) and a vector store (LanceDB) for improved entity recognition and relationship extraction.
+- For a deeper dive, [Paco's YouTube video and associated diagrams](https://senzing.com/gph-graph-rag-llm-knowledge-graphs/) help highlight real-world use cases where effective Knowledge Graph construction can provide deeper meaning and insight.
+
 
 ```mermaid
 sequenceDiagram
@@ -118,9 +186,7 @@ sequenceDiagram
 
 [View HTML Page](https://github.com/donbr/strwythura/blob/main/graphrag_demo.html)
 
-![alt text](image.png)
-
-- NOTE:  you may need to download the file locally to view it.
+- NOTE:  you'll need to download the file locally to view it.
 
 ---
 
@@ -167,7 +233,7 @@ sequenceDiagram
 1. **HTML Scraper (BeautifulSoup)**: Fetches unstructured text data from web sources.
 2. **Text Chunker**: Breaks raw text into manageable chunks (e.g., 1024 tokens) and prepares them for embedding.
 3. **SpaCy Pipeline**: Processes chunks and integrates GLiNER and GLiREL for entity and relation extraction.
-4. **Embedding Model (bge-small-en-v1.5)**:
+4. **Embedding Model (bge-small-en-v1.5)**:  Captures lower-level lexical meanings of text and translates them into machine-readable vector representations.
 5. **GLiNER**: Identifies domain-specific entities and returns labeled outputs.
 6. **GLiREL**: Extracts relationships between identified entities, adding connectivity to the graph.
 7. **Vector Database (LanceDB)**: Stores chunk embeddings for efficient querying in downstream tasks.

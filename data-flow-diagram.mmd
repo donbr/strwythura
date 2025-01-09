@@ -1,0 +1,32 @@
+graph TD
+    %% Database shapes
+    A[(Structured Data Sources)]
+    C[(Unstructured Data Sources)]
+    G[(graph database)]
+    I[(vector database)]
+
+    %% Flow from structured data
+    A -->|PII features| B[entity resolution]
+    A -->|data records| G
+    G -->|PII updates| B
+    B -->|semantic overlay| G
+
+    %% Schema and ontology
+    J[schema, ontology, taxonomy,<br/>controlled vocabularies, etc.] --> G
+
+    %% Flow from unstructured data
+    C --> K[text chunking function]
+    K --> D[NLP parse]
+    K --> L[embedding model]
+    D --> E[NER, RE]
+    E --> F[lexical graph]
+    F --> H[entity linking]
+    H <--> G
+
+    %% Vector elements connections
+    L --> I
+    I -.->|chunk references| G
+
+    %% Thesaurus connection
+    B -.->T[thesaurus]
+    T --> H
