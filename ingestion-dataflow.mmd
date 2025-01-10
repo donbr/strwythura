@@ -1,0 +1,50 @@
+graph TD
+    %% Database shapes with consistent styling
+    SDS[(Structured<br/>Data Sources)]
+    UDS[(Unstructured<br/>Data Sources)]
+    LG[(lexical graph)]
+    SG[(semantic graph)]
+    VD[(vector database)]
+
+    %% Flow from structured data
+    SDS -->|PII features| ER[entity resolution]
+    SDS -->|data records| SG
+    SG -->|PII updates| ER
+    ER -->|semantic overlay| SG
+
+    %% Schema and ontology
+    ONT[schema, ontology, taxonomy,<br/>controlled vocabularies, etc.]
+    ONT --> SG
+
+    %% Flow from unstructured data
+    UDS --> K[text chunking<br/>function]
+    K --> NLP[NLP parse]
+    K --> EM[embedding model]
+    NLP --> E[NER, RE]
+    E --> LG
+    LG --> EL[entity linking]
+    EL <--> SG
+
+    %% Vector elements connections
+    EM --> VD
+    VD -.->|capture source chunk<br/>WITHIN references| SG
+
+    %% Thesaurus connection
+    ER -.->T[thesaurus]
+    T --> EL
+
+    %% Styling classes
+    classDef dataSource fill:#f4f4f4,stroke:#666,stroke-width:2px;
+    classDef storage fill:#e6f3ff,stroke:#4a90e2,stroke-width:2px;
+    classDef embedding fill:#fff3e6,stroke:#f5a623,stroke-width:2px;
+    classDef lexical fill:#f0e6ff,stroke:#4a90e2,stroke-width:2px;
+    classDef semantic fill:#f0e6ff,stroke:#9013fe,stroke-width:2px;
+    classDef reference fill:#e6ffe6,stroke:#417505,stroke-width:2px;
+
+    %% Apply styles by layer/type
+    class SDS,UDS dataSource;
+    class SG,VD storage;
+    class EM embedding;
+    class LG lexical;
+    class SG semantic;
+    class ONT,T reference;

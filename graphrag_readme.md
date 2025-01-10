@@ -22,37 +22,55 @@ A single architecture diagram can *never* capture `everything` for all stakehold
 
 ```mermaid
 graph TD
-    %% Database shapes
-    A[(Structured<br/>Data Sources)]
-    C[(Unstructured<br/>Data Sources)]
-    G[(graph database)]
-    I[(vector database)]
+    %% Database shapes with consistent styling
+    SDS[(Structured<br/>Data Sources)]
+    UDS[(Unstructured<br/>Data Sources)]
+    LG[(lexical graph)]
+    SG[(semantic graph)]
+    VD[(vector database)]
 
     %% Flow from structured data
-    A -->|PII features| B[entity resolution]
-    A -->|data records| G
-    G -->|PII updates| B
-    B -->|semantic overlay| G
+    SDS -->|PII features| ER[entity resolution]
+    SDS -->|data records| SG
+    SG -->|PII updates| ER
+    ER -->|semantic overlay| SG
 
     %% Schema and ontology
-    J[schema, ontology, taxonomy,<br/>controlled vocabularies, etc.] --> G
+    ONT[schema, ontology, taxonomy,<br/>controlled vocabularies, etc.]
+    ONT --> SG
 
     %% Flow from unstructured data
-    C --> K[text chunking<br/>function]
-    K --> D[NLP parse]
-    K --> L[embedding model]
-    D --> E[NER, RE]
-    E --> F[lexical graph]
-    F --> H[entity linking]
-    H <--> G
+    UDS --> K[text chunking<br/>function]
+    K --> NLP[NLP parse]
+    K --> EM[embedding model]
+    NLP --> E[NER, RE]
+    E --> LG
+    LG --> EL[entity linking]
+    EL <--> SG
 
     %% Vector elements connections
-    L --> I
-    I -.->|chunk references| G
+    EM --> VD
+    VD -.->|capture source chunk<br/>WITHIN references| SG
 
     %% Thesaurus connection
-    B -.->T[thesaurus]
-    T --> H
+    ER -.->T[thesaurus]
+    T --> EL
+
+    %% Styling classes
+    classDef dataSource fill:#f4f4f4,stroke:#666,stroke-width:2px;
+    classDef storage fill:#e6f3ff,stroke:#4a90e2,stroke-width:2px;
+    classDef embedding fill:#fff3e6,stroke:#f5a623,stroke-width:2px;
+    classDef lexical fill:#f0e6ff,stroke:#4a90e2,stroke-width:2px;
+    classDef semantic fill:#f0e6ff,stroke:#9013fe,stroke-width:2px;
+    classDef reference fill:#e6ffe6,stroke:#417505,stroke-width:2px;
+
+    %% Apply styles by layer/type
+    class SDS,UDS dataSource;
+    class SG,VD storage;
+    class EM embedding;
+    class LG lexical;
+    class SG semantic;
+    class ONT,T reference;
 ```
 
 ### Augment LLM Inference
@@ -60,35 +78,51 @@ graph TD
 ```mermaid
 graph LR
     %% Define database and special shapes
-    A[prompt]
-    G[(graph database)]
-    V[(vector database)]
-    L[LLM]
-    R[response]
+    P[prompt]
+    SG[(semantic graph)]
+    VD[(vector database)]
+    LLM[LLM]
+    Z[response]
     
     %% Main flow paths
-    A --> B[generated query]
-    A --> C[embedding model]
+    P --> Q[generated query]
+    P --> EM[embedding model]
     
     %% Upper path through graph elements
-    B --> G
-    G --> D[semantic<br/>random walk]
-    T[thesaurus] --> D
-    D --> E[graph analytics]
+    Q --> SG
+    SG --> W[semantic<br/>random walk]
+    T[thesaurus] --> W
+    W --> GA[graph analytics]
     
     %% Lower path through vector elements
-    C --> F[vector<br/>similarity search]
-    F --> V
+    EM --> SS[vector<br/>similarity search]
+    SS --> VD
     
     %% Node embeddings and chunk references
-    G -.-|chunk references| V
-    F -->|node embeddings| G
+    SG -.-|chunk references| VD
+    SS -->|node embeddings| SG
     
     %% Final convergence
-    E --> H[ranked index]
-    V --> H
-    H --> L
-    L --> R
+    GA --> RI[ranked index]
+    VD --> RI
+    RI --> LLM
+    LLM --> Z
+
+    %% Styling classes
+    classDef dataSource fill:#f4f4f4,stroke:#666,stroke-width:2px;
+    classDef storage fill:#e6f3ff,stroke:#4a90e2,stroke-width:2px;
+    classDef embedding fill:#fff3e6,stroke:#f5a623,stroke-width:2px;
+    classDef lexical fill:#f0e6ff,stroke:#4a90e2,stroke-width:2px;
+    classDef semantic fill:#f0e6ff,stroke:#9013fe,stroke-width:2px;
+    classDef reference fill:#e6ffe6,stroke:#417505,stroke-width:2px;
+
+    %% Apply styles by layer/type
+    class SDS,UDS dataSource;
+    class SG,VD storage;
+    class EM embedding;
+    class LG lexical;
+    class SG semantic;
+    class ONT,T reference;
 ```
 
 ## Sequence Diagram - covering the current `strwythura` (structure) repo
@@ -318,10 +352,10 @@ F -->|Visualize| G[Interactive View]
 | **HTML Scraper (BeautifulSoup)** | Fetches unstructured text data from web sources.                                                  | Data Ingestion                     |
 | **Text Chunker**               | Breaks raw text into manageable chunks (e.g., 1024 tokens) and prepares them for embedding.        | Data Ingestion                     |
 | **SpaCy Pipeline**             | Processes chunks and integrates GLiNER and GLiREL for entity and relation extraction.             | Entity and Relation Extraction     |
-| **Embedding Model (bge-small-en-v1.5)** | Captures lower-level lexical meanings of text and translates them into machine-readable vector representations. | Lexical Graph Construction         |
+| **Embedding Model (bge-small-en-v1.5)** | Captures lower-level lexical meanings of text and translates them into machine-readable vector representations. | Data Ingestion |
 | **GLiNER**                     | Identifies domain-specific entities and returns labeled outputs.                                  | Entity and Relation Extraction     |
 | **GLiREL**                     | Extracts relationships between identified entities, adding connectivity to the graph.             | Entity and Relation Extraction     |
-| **Vector Database (LanceDB)**  | Stores chunk embeddings for efficient querying in downstream tasks.                              | Lexical Graph Construction         |
-| **Word2Vec (Gensim)**          | Generates entity embeddings based on graph co-occurrence for additional analysis.                 | Lexical Graph Construction         |
+| **Vector Database (LanceDB)**  | Stores chunk embeddings for efficient querying in downstream tasks.                              | Data Ingestion         |
+| **Word2Vec (Gensim)**          | Generates entity embeddings based on graph co-occurrence for additional analysis.                 | Semantic Graph Construction         |
 | **Graph Constructor (NetworkX)** | Builds and analyzes the knowledge graph, ranking entities using TextRank.                       | Graph Construction and Visualization |
 | **Graph Visualizer (PyVis)**   | Provides an interactive visualization of the knowledge graph for interpretability.                | Graph Construction and Visualization |

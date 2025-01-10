@@ -18,69 +18,112 @@ This project builds upon work from the [Connected Data London 2024 Entity Resolv
 
 GraphRAG implements a layered approach to knowledge graph construction:
 
-### Data Layer
+### Ingestion
+
 ```mermaid
 graph TD
-    A[(Structured<br/>Data Sources)]
-    C[(Unstructured<br/>Data Sources)]
-    G[(Graph Database)]
-    I[(Vector Database)]
+    %% Database shapes with consistent styling
+    SDS[(Structured<br/>Data Sources)]
+    UDS[(Unstructured<br/>Data Sources)]
+    LG[(lexical graph)]
+    SG[(semantic graph)]
+    VD[(vector database)]
 
-    A -->|PII features| B[Entity Resolution]
-    A -->|Data Records| G
-    G -->|PII Updates| B
-    B -->|Semantic Overlay| G
+    %% Flow from structured data
+    SDS -->|PII features| ER[entity resolution]
+    SDS -->|data records| SG
+    SG -->|PII updates| ER
+    ER -->|semantic overlay| SG
 
-    J[Schema & Ontology] --> G
+    %% Schema and ontology
+    ONT[schema, ontology, taxonomy,<br/>controlled vocabularies, etc.]
+    ONT --> SG
 
-    C --> K[Text Chunking]
-    K --> D[NLP Parse]
-    K --> L[Embedding Model]
-    D --> E[NER, RE]
-    E --> F[Lexical Graph]
-    F --> H[Entity Linking]
-    H <--> G
+    %% Flow from unstructured data
+    UDS --> K[text chunking<br/>function]
+    K --> NLP[NLP parse]
+    K --> EM[embedding model]
+    NLP --> E[NER, RE]
+    E --> LG
+    LG --> EL[entity linking]
+    EL <--> SG
 
-    L --> I
-    I -.->|Chunk References| G
+    %% Vector elements connections
+    EM --> VD
+    VD -.->|capture source chunk<br/>WITHIN references| SG
 
-    B -.->T[Thesaurus]
-    T --> H
+    %% Thesaurus connection
+    ER -.->T[thesaurus]
+    T --> EL
+
+    %% Styling classes
+    classDef dataSource fill:#f4f4f4,stroke:#666,stroke-width:2px;
+    classDef storage fill:#e6f3ff,stroke:#4a90e2,stroke-width:2px;
+    classDef embedding fill:#fff3e6,stroke:#f5a623,stroke-width:2px;
+    classDef lexical fill:#f0e6ff,stroke:#4a90e2,stroke-width:2px;
+    classDef semantic fill:#f0e6ff,stroke:#9013fe,stroke-width:2px;
+    classDef reference fill:#e6ffe6,stroke:#417505,stroke-width:2px;
+
+    %% Apply styles by layer/type
+    class SDS,UDS dataSource;
+    class SG,VD storage;
+    class EM embedding;
+    class LG lexical;
+    class SG semantic;
+    class ONT,T reference;
 ```
 
-### Inference Layer
+### Inference
+
 ```mermaid
 graph LR
     %% Define database and special shapes
-    A[prompt]
-    G[(graph database)]
-    V[(vector database)]
-    L[LLM]
-    R[response]
+    P[prompt]
+    SG[(semantic graph)]
+    VD[(vector database)]
+    LLM[LLM]
+    Z[response]
     
     %% Main flow paths
-    A --> B[generated query]
-    A --> C[embedding model]
+    P --> Q[generated query]
+    P --> EM[embedding model]
     
     %% Upper path through graph elements
-    B --> G
-    G --> D[semantic<br/>random walk]
-    T[thesaurus] --> D
-    D --> E[graph analytics]
+    Q --> SG
+    SG --> W[semantic<br/>random walk]
+    T[thesaurus] --> W
+    W --> GA[graph analytics]
     
     %% Lower path through vector elements
-    C --> F[vector<br/>similarity search]
-    F --> V
+    EM --> SS[vector<br/>similarity search]
+    SS --> VD
     
     %% Node embeddings and chunk references
-    G -.-|chunk references| V
-    F -->|node embeddings| G
+    SG -.-|chunk references| VD
+    SS -->|node embeddings| SG
     
     %% Final convergence
-    E --> H[ranked index]
-    V --> H
-    H --> L
-    L --> R
+    GA --> RI[ranked index]
+    VD --> RI
+    RI --> LLM
+    LLM --> Z
+
+    %% Styling classes
+    classDef dataSource fill:#f4f4f4,stroke:#666,stroke-width:2px;
+    classDef storage fill:#e6f3ff,stroke:#4a90e2,stroke-width:2px;
+    classDef process fill:#fff3e6,stroke:#f5a623,stroke-width:2px;
+    classDef lexical fill:#f0e6ff,stroke:#4a90e2,stroke-width:2px;
+    classDef semantic fill:#f0e6ff,stroke:#9013fe,stroke-width:2px;
+    classDef reference fill:#e6ffe6,stroke:#417505,stroke-width:2px;
+
+    %% Apply styles by layer/type
+    class SDS,UDS dataSource;
+    class SG,VD storage;
+    class ER,NLP,E,K,EM process;
+    class LG lexical;
+    class SG semantic;
+    class ONT,T reference;
+    class EL process;
 ```
 
 ## Key Components
