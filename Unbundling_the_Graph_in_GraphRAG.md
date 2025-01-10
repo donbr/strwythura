@@ -55,7 +55,40 @@ A more accountable approach to GraphRAG is to unbundle the process of knowledge 
 
 A generalized workflow for this unbundled approach is shown below, with a path along the top to ingest structured data plus schema, and a path along the bottom to ingest unstructured data:
 
-![GraphRAG Workflow](https://www.oreilly.com/radar/wp-content/uploads/sites/3/2024/11/Picture1.png)
+```mermaid
+graph TD
+    %% Database shapes
+    A[(Structured<br/>Data Sources)]
+    C[(Unstructured<br/>Data Sources)]
+    G[(graph database)]
+    I[(vector database)]
+
+    %% Flow from structured data
+    A -->|PII features| B[entity resolution]
+    A -->|data records| G
+    G -->|PII updates| B
+    B -->|semantic overlay| G
+
+    %% Schema and ontology
+    J[schema, ontology, taxonomy,<br/>controlled vocabularies, etc.] --> G
+
+    %% Flow from unstructured data
+    C --> K[text chunking<br/>function]
+    K --> D[NLP parse]
+    K --> L[embedding model]
+    D --> E[NER, RE]
+    E --> F[lexical graph]
+    F --> H[entity linking]
+    H <--> G
+
+    %% Vector elements connections
+    L --> I
+    I -.->|chunk references| G
+
+    %% Thesaurus connection
+    B -.->T[thesaurus]
+    T --> H
+```
 
 The results on the right side are text chunks stored in a vector database, indexed by their embeddings vectors, plus a combined domain graph and lexical graph stored in a graph database. The elements of either store are linked together. By the numbers:
 
@@ -72,7 +105,39 @@ This approach suits the needs of enterprise use cases in general, leveraging “
 
 When a prompt arrives, the GraphRAG application can follow two complementary paths to determine which chunks to present to the LLM. This is shown in the following:
 
-![GraphRAG Query](https://www.oreilly.com/radar/wp-content/uploads/sites/3/2024/11/Picture2.png)
+```mermaid
+graph LR
+    %% Define database and special shapes
+    A[prompt]
+    G[(graph database)]
+    V[(vector database)]
+    L[LLM]
+    R[response]
+    
+    %% Main flow paths
+    A --> B[generated query]
+    A --> C[embedding model]
+    
+    %% Upper path through graph elements
+    B --> G
+    G --> D[semantic<br/>random walk]
+    T[thesaurus] --> D
+    D --> E[graph analytics]
+    
+    %% Lower path through vector elements
+    C --> F[vector<br/>similarity search]
+    F --> V
+    
+    %% Node embeddings and chunk references
+    G -.-|chunk references| V
+    F -->|node embeddings| G
+    
+    %% Final convergence
+    E --> H[ranked index]
+    V --> H
+    H --> L
+    L --> R
+```
 
 A set of open source tutorials serve as a reference implementation for this approach.
 
