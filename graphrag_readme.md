@@ -18,12 +18,6 @@ This current repository is a fork of one of four repos that make up the mastercl
 
 NOTE:  mermaid.js diagrams below are based on those from the [Connected Data London 2024: Entity Resolved Knowledge Graphs](https://github.com/donbr/cdl2024_masterclass/blob/main/README.md) masterclass.
 
-> COMMENTS: some additional aspects thats aren't called out in this diagram is the degree to which data has been trusted / validated.  Anchor nodes and golden nuggets are essential if your graph is to evolve and improve over time.  
-
-> there should be a robust data flow to write vetted / high quality data back to the structured data store (at appropriate intervals)
-
-> fraudulent data may also need to trigger worfklows and downstream actions - including flagging data that we previously trusted
-
 A single architecture diagram can *never* capture `everything` for all stakeholders - I would check out some of Paco's `GraphGeeks` and `Graph Power Hour` discussions where he touches on some of these themes.
 
 ```mermaid
@@ -190,169 +184,120 @@ sequenceDiagram
 
 ---
 
-## Pardon my mess:  a journey of incremental enlightenment...
+## Appendix: Code Overview and Purpose
 
-- much of the content I've added below still smells, but there are some emerging golden nuggets of truth.
-  - it's a bit of a rabbit hole - an exercise in agent / llm experience (we have UX, why not AIX?)
-- As I clarify the why and the what of specific components / functions in the flow the content *may* improve (or I may dump it entirely)
-
-```mermaid
-sequenceDiagram
-    participant Main as Main Workflow
-    participant Scraper as HTML Scraper (BeautifulSoup)
-    participant Chunker as Text Chunker
-    participant Spacy as SpaCy Pipeline
-    participant BGE as Embedding Model (bgeSmall)
-    participant GLiNER as Named Entity Recognition (GLiNER)
-    participant GLiREL as Relation Extraction (GLiREL)
-    participant LanceDB as Vector Database
-    participant W2V as Word2Vec Model (Gensim)
-    participant NetworkX as Graph Constructor (NetworkX)
-    participant PyVis as Graph Visualizer (PyVis)
-
-    Main->>Scraper: Scrape unstructured data from URLs
-    Scraper->>Chunker: Pass raw text for chunking
-    Chunker->>LanceDB: Store chunks and vectors
-    Chunker->>Spacy: Parse chunks into SpaCy pipeline
-    Spacy->>GLiNER: Extract named entities
-    GLiNER-->>Spacy: Return identified entities
-    Spacy->>GLiREL: Extract relationships between entities
-    GLiREL-->>Spacy: Return identified relations
-    Spacy->>NetworkX: Add entities and relations to graph
-    NetworkX->>NetworkX: Apply PageRank (TextRank) on graph
-    NetworkX->>W2V: Generate entity embeddings (Word2Vec)
-    W2V-->>Main: Save trained embeddings
-    NetworkX->>PyVis: Generate interactive graph visualization
-    PyVis-->>Main: Save graph as HTML
-
-    Main->>LanceDB: Query vector database for semantic search
-```
-
-### **Explanation of Participants:**
-
-1. **HTML Scraper (BeautifulSoup)**: Fetches unstructured text data from web sources.
-2. **Text Chunker**: Breaks raw text into manageable chunks (e.g., 1024 tokens) and prepares them for embedding.
-3. **SpaCy Pipeline**: Processes chunks and integrates GLiNER and GLiREL for entity and relation extraction.
-4. **Embedding Model (bge-small-en-v1.5)**:  Captures lower-level lexical meanings of text and translates them into machine-readable vector representations.
-5. **GLiNER**: Identifies domain-specific entities and returns labeled outputs.
-6. **GLiREL**: Extracts relationships between identified entities, adding connectivity to the graph.
-7. **Vector Database (LanceDB)**: Stores chunk embeddings for efficient querying in downstream tasks.
-8. **Word2Vec (Gensim)**: Generates entity embeddings based on graph co-occurrence for additional analysis.
-9. **Graph Constructor (NetworkX)**: Builds and analyzes the knowledge graph, ranking entities using TextRank.
-10. **Graph Visualizer (PyVis)**: Provides an interactive visualization of the knowledge graph for interpretability.
-
-### **Key Highlights:**
-
-- The diagram separates concerns, showing how the models (GLiNER, GLiREL, and W2V) integrate with components like SpaCy, NetworkX, and LanceDB.
-- Each model’s purpose is clearly contextualized within the flow.
-- Semantic embeddings (via LanceDB) and graph-specific embeddings (via Word2Vec) are highlighted as complementary processes.
-
-## Building Robust Knowledge Graphs for GraphRAG: A Comprehensive Analysis
-
-### **Executive Overview**
-
-Knowledge Graphs (KGs) are critical in transforming unstructured data into actionable insights, especially for Graph-based Retrieval-Augmented Generation (GraphRAG). This report provides a systematic, layered approach to building robust KGs, leveraging both open-source and proprietary tools to address enterprise-level challenges.
-
-#### **Purpose and Value Proposition**
-
-This workflow stands out by addressing challenges in:
-
-- **Data Ingestion**: Handling noisy and unstructured data.
-- **Semantic Enrichment**: Integrating domain-specific ontologies for context.
-- **Scalability and Adaptability**: Supporting real-time updates and modularity for diverse use cases.
-
-By blending symbolic reasoning with statistical machine learning, this solution is ideal for regulated environments like healthcare and finance, where auditability and explainability are crucial.
+- The code forms part of a talk for **GraphGeeks.org** about constructing **knowledge graphs** from **unstructured data sources**, such as web content.
+- It integrates web scraping, natural language processing (NLP), graph construction, and interactive visualization.
 
 ---
 
-### **1. Architectural Workflow: Layered Knowledge Graph Construction**
+### **Key Components and Flow**
+
+#### **1. Model and Parameter Settings**
+- **Core Configuration**: Establishes the foundational settings like chunk size, embedding models (`BAAI/bge-small-en-v1.5`), and database URIs.
+- **NER Labels**: Defines entity categories such as `Person`, `Organization`, `Publication`, and `Technology`.
+- **Relation Types**: Configures relationships like `works_at`, `developed_by`, and `authored_by` for connecting entities.
+- **Scraping Parameters**: Sets user-agent headers for web requests.
+
+#### **2. Data Validation**
+- **Classes**:
+  - `TextChunk`: Represents segmented text chunks with their embeddings.
+  - `Entity`: Tracks extracted entities, their attributes, and relationships.
+- **Purpose**: Ensures data is clean and well-structured for downstream processing.
+
+#### **3. Data Collection**
+- **Functions**:
+  - `scrape_html`: Fetches and parses webpage content.
+  - `uni_scrubber`: Cleans Unicode and formatting issues.
+  - `make_chunk`: Segments long text into manageable chunks for embedding.
+- **Role**: Prepares raw, unstructured data for structured analysis.
+
+#### **4. Lexical Graph Construction**
+- **Initialization**:
+  - `init_nlp`: Sets up NLP pipelines with spaCy, GLiNER (NER), and GLiREL (RE).
+- **Graph Parsing**:
+  - `parse_text`: Creates lexical graphs using TextRank algorithms.
+  - `make_entity`: Extracts and integrates entities into the graph.
+  - `connect_entities`: Links entities co-occurring in the same context.
+- **Purpose**: Converts text into a structured, connected graph of entities and relationships.
+
+#### **5. Numerical Processing**
+- **Functions**:
+  - `calc_quantile_bins`: Creates quantile bins for numerical data.
+  - `root_mean_square`: Computes RMS for normalization.
+  - `stripe_column`: Applies quantile binning to data columns.
+- **Role**: Provides statistical operations to refine and rank graph components.
+
+#### **6. TextRank Implementation**
+- **Functions**:
+  - `run_textrank`: Ranks entities in the graph based on a PageRank-inspired algorithm.
+- **Purpose**: Identifies and prioritizes key entities for knowledge graph construction.
+
+#### **7. Semantic Overlay**
+- **Functions**:
+  - `abstract_overlay`: Abstracts a semantic layer from the lexical graph.
+  - Connects entities to their originating text chunks for context preservation.
+- **Role**: Enhances the graph with higher-order relationships and semantic depth.
+
+#### **8. Visualization**
+- **Tool**: `pyvis`
+- **Functions**:
+  - `gen_pyvis`: Creates an interactive visualization of the knowledge graph.
+- **Features**:
+  - Node sizing reflects entity importance.
+  - Physics-based layout supports intuitive exploration.
+
+#### **9. Orchestration**
+- **Function**:
+  - `construct_kg`: Orchestrates the full pipeline from data collection to visualization.
+- **Purpose**: Ensures the seamless integration of all layers and components.
+
+---
+
+### **Notable Implementation Details**
+
+- **Multi-Layer Graph Representation**: Combines lexical and semantic graphs for layered analysis.
+- **Vector Embedding Integration**: Enhances entity representation with embeddings.
+- **Error Handling and Debugging**: Includes robust logging and debugging features.
+- **Scalability**: Designed for handling diverse and large datasets with dynamic relationships.
+
+---
+
+## Appendix:  Architectural Workflow
+
+### **1. Architectural Workflow: A Layered Approach to Knowledge Graph Construction**
 
 #### **1.1 Workflow Layers**
 
-1. **Data Ingestion**:
-   - **Open Source**: BeautifulSoup for scraping; LanceDB for vector embeddings.
-   - **Proprietary**: OpenAI’s `text-embedding-3-small` and Qdrant for advanced vector storage.
-2. **Lexical Graph Construction**:
-   - Parsing chunks using spaCy.
-   - Token ranking with TextRank for key entity identification.
-3. **Entity and Relation Extraction**:
-   - Named Entity Recognition (NER) with GLiNER.
-   - Relation extraction using GLiREL to build connections.
-4. **Graph Construction and Visualization**:
-   - NetworkX for constructing the graph structure.
-   - PyVis for interactive visualizations.
-5. **Semantic Overlay**:
-   - Integrating structured data and domain-specific ontologies for added context and reasoning.
+**Data Ingestion:**
+- Role: Extract raw data from structured and unstructured sources for downstream processing.
+- Responsibilities: Handle diverse data formats, ensure quality, and standardize for analysis.
+- Requirements: Reliable scraping, parsing, and chunking mechanisms to prepare data for embedding and analysis.
 
-#### **1.2 Enhanced Sequence Diagram**
+**Lexical Graph Construction:**
+- Role: Build a foundational graph by integrating tokenized data and semantic relationships.
+- Responsibilities: Identify key entities through tokenization and ranking (e.g., TextRank).
+- Requirements: Efficient methods for integrating named entities and relationships into a coherent graph structure.
 
-```mermaid
-sequenceDiagram
-    participant Main as Main Orchestration
-    participant ConstructKG as Knowledge Graph Constructor
-    participant InitNLP as NLP Initialization
-    participant ScrapeHTML as Data Scraper
-    participant ParseText as Text Parser
-    participant ExtractEntity as Entity Extractor
-    participant ExtractRelations as Relationship Extractor
-    participant VisualizeGraph as Graph Visualizer
+**Entity and Relation Extraction:**
+- Role: Identify and label entities, along with their relationships, to enrich the graph structure.
+- Responsibilities: Extract domain-specific entities (NER) and relationships (RE) to add connectivity.
+- Requirements: Domain-tuned models and algorithms for accurate extraction.
 
-    Main->>ConstructKG: Start KG Construction
-    ConstructKG->>InitNLP: Initialize NLP Models
-    InitNLP-->>ConstructKG: NLP Ready
-    ConstructKG->>ScrapeHTML: Scrape Data
-    ScrapeHTML-->>ConstructKG: Chunks Ready
-    ConstructKG->>ParseText: Parse Chunks
-    ParseText->>ExtractEntity: Identify Entities
-    ParseText->>ExtractRelations: Identify Relationships
-    ExtractRelations-->>ParseText: Relations Added
-    ConstructKG->>VisualizeGraph: Generate Visualization
-    VisualizeGraph-->>Main: Process Complete
-```
+**Graph Construction and Visualization:**
+- Role: Develop and display the knowledge graph to facilitate analysis and decision-making.
+- Responsibilities: Create a graph structure using tools like NetworkX and enable exploration with interactive visualizations (e.g., PyVis).
+- Requirements: Scalable graph-building frameworks and intuitive visualization tools.
 
----
+**Semantic Overlay:**
+- Role: Enhance the graph with additional context and reasoning capabilities.
+- Responsibilities: Integrate ontologies, taxonomies, and domain-specific knowledge to provide depth and precision.
+- Requirements: Mechanisms to map structured data into graph elements and ensure consistency with existing knowledge bases.
 
-### **2. Trade-Off Analysis: Open Source vs. Proprietary Solutions**
 
-| **Feature**                     | **Open Source** (GLiNER, LanceDB) | **Proprietary** (OpenAI, Qdrant)        | **Considerations**                       |
-|----------------------------------|-----------------------------------|-----------------------------------------|------------------------------------------|
-| **Scalability**                  | Modular and scalable              | High scalability with enterprise-grade support | Open Source may require tuning.          |
-| **Cost**                         | Minimal                           | Higher licensing costs                  | Depends on budget constraints.           |
-| **Model Accuracy**               | Tunable with custom pipelines     | High baseline accuracy                  | Proprietary models excel with limited data. |
-| **Auditability**                 | Fully transparent                 | Black-box in some aspects               | Regulated industries may prefer open source. |
-| **Integration**                  | Seamless integration with OSS tools | API-driven integration                  | Proprietary APIs may introduce dependencies. |
-| **Updates**                      | Requires manual updates           | Auto-updated models                     | Proprietary wins for ease of use.         |
+### **2. Visualized Workflow**
 
----
-
-### **3. Key Technical Components**
-
-#### **3.1 Data Ingestion and Chunking**
-
-- **Process**: Scrape data using BeautifulSoup; chunk using spaCy.
-- **Challenges**: Handling noise, unstructured formats.
-- **Solutions**: Introduce configurable pre-processing pipelines.
-
-#### **3.2 NLP Pipeline Initialization**
-
-- **Tools**: spaCy, GLiNER, GLiREL.
-- **Key Configurations**: Fine-tune NER and RE models for specific domains.
-
-#### **3.3 Graph Construction**
-
-- **Framework**: NetworkX.
-- **Enhancements**: Edge weights based on TextRank scores; customizable traversal algorithms.
-
-#### **3.4 Visualization**
-
-- **Tool**: PyVis for interactive views.
-- **Benefit**: Enables real-time exploration and debugging.
-
----
-
-### **4. Visualized Architecture**
-
-#### **4.1 Logical Data Flow Diagram**
+#### **2.1 Logical Data Flow**
 
 ```mermaid
 graph TD
@@ -366,28 +311,17 @@ F -->|Visualize| G[Interactive View]
 
 ---
 
-### **5. Scalability and Extensibility**
+### **3. Glossary**
 
-#### **5.1 Incremental Graph Updates**
-
-- **Change Detection**: Monitor for source changes with hash comparisons.
-- **Merging**: Ensure conflict resolution during node and edge updates.
-
-#### **5.2 Domain-Specific Support**
-
-- Use domain-specific ontologies (e.g., UMLS for healthcare).
-- Fine-tune models using domain-specific datasets.
-
----
-
-### **6. Conclusion and Next Steps**
-
-This workflow demonstrates how modular, scalable approaches to KG construction can elevate GraphRAG applications in enterprise environments. By addressing real-world challenges with both open-source and proprietary tools, it offers a comprehensive solution for data-driven decision-making.
-
-#### **Next Steps**:
-
-- **Pilot Testing**: Use open-source tools to validate the workflow on real-world datasets.
-- **Real-Time Updates**: Research strategies for dynamic graph construction.
-- **Domain Expansion**: Fine-tune workflows for sectors like healthcare, finance, and e-commerce.
-
-By leveraging symbolic reasoning and statistical AI, this approach ensures transparency, scalability, and auditability—key requirements for modern enterprises.
+| **Participant**                | **Description**                                                                                   | **Workflow Layer**                 |
+|--------------------------------|---------------------------------------------------------------------------------------------------|-------------------------------------|
+| **HTML Scraper (BeautifulSoup)** | Fetches unstructured text data from web sources.                                                  | Data Ingestion                     |
+| **Text Chunker**               | Breaks raw text into manageable chunks (e.g., 1024 tokens) and prepares them for embedding.        | Data Ingestion                     |
+| **SpaCy Pipeline**             | Processes chunks and integrates GLiNER and GLiREL for entity and relation extraction.             | Entity and Relation Extraction     |
+| **Embedding Model (bge-small-en-v1.5)** | Captures lower-level lexical meanings of text and translates them into machine-readable vector representations. | Lexical Graph Construction         |
+| **GLiNER**                     | Identifies domain-specific entities and returns labeled outputs.                                  | Entity and Relation Extraction     |
+| **GLiREL**                     | Extracts relationships between identified entities, adding connectivity to the graph.             | Entity and Relation Extraction     |
+| **Vector Database (LanceDB)**  | Stores chunk embeddings for efficient querying in downstream tasks.                              | Lexical Graph Construction         |
+| **Word2Vec (Gensim)**          | Generates entity embeddings based on graph co-occurrence for additional analysis.                 | Lexical Graph Construction         |
+| **Graph Constructor (NetworkX)** | Builds and analyzes the knowledge graph, ranking entities using TextRank.                       | Graph Construction and Visualization |
+| **Graph Visualizer (PyVis)**   | Provides an interactive visualization of the knowledge graph for interpretability.                | Graph Construction and Visualization |
