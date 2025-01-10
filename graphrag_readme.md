@@ -14,7 +14,7 @@ This current repository is a fork of one of four repos that make up the mastercl
 
 ## Some fundamental concepts from the masterclass
 
-### Data Infestion
+### Data Ingestion
 
 NOTE:  mermaid.js diagrams below are based on those from the [Connected Data London 2024: Entity Resolved Knowledge Graphs](https://github.com/donbr/cdl2024_masterclass/blob/main/README.md) masterclass.
 
@@ -55,7 +55,7 @@ graph TD
     T --> H
 ```
 
-### Data Inference (or applied data use)
+### Augment LLM Inference
 
 ```mermaid
 graph LR

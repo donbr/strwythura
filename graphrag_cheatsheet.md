@@ -6,7 +6,7 @@ GraphRAG is a framework for constructing robust knowledge graphs from unstructur
 
 ## Acknowledgments
 
-This project builds upon work from the Connected Data London 2024 Entity Resolved Knowledge Graphs masterclass, with contributions from:
+This project builds upon work from the [Connected Data London 2024 Entity Resolved Knowledge Graphs masterclass](https://github.com/DerwenAI/cdl2024_masterclass/blob/main/README.md), with contributions from:
 
 - Paco Nathan (Senzing) - Knowledge Graph Architecture
 - Clair Sullivan - Graph Analytics
@@ -219,3 +219,5 @@ We welcome contributions! Please see our contributing guidelines for details.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+Refer to the source repository for this fork for additional details:  https://github.com/DerwenAI/strwythura
