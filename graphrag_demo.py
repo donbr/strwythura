@@ -1111,11 +1111,7 @@ def construct_kg (
 if __name__ == "__main__":
 
     url_list: typing.List[ str ] = [
-        "https://github.com/donbr/cdl2024_masterclass/blob/main/README.md",
-        "https://github.com/donbr/strwythura/blob/main/Unbundling_the_Graph_in_GraphRAG.md",
-        "https://github.com/donbr/strwythura/blob/main/README.md",
-        "https://github.com/urchade/GLiNER/blob/main/README_Extended.md",
-        "https://github.com/jackboyla/GLiREL/blob/main/README.md"
+        "https://raw.githubusercontent.com/egodat/Churchill/refs/heads/master/We_shall_fight.txt",
     ]
 
     vect_db: lancedb.db.LanceDBConnection = lancedb.connect(LANCEDB_URI)
